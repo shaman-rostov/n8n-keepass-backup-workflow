@@ -1,0 +1,512 @@
+{
+  "name": "BackUpKeePassFiles",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "compress",
+        "fileName": "=pass_kdbx_{{ $now.format('ddMMyyyy_HHmm') }}.zip"
+      },
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        80
+      ],
+      "id": "37e8afdd-c971-4c66-8231-99861dd88c81",
+      "name": "Compression"
+    },
+    {
+      "parameters": {
+        "name": "=pass_kdbx_{{ $now.format('ddMMyyyy_HHmm') }}.zip",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "11mllj9dP2eiCabLxQ-fteCkiegjPg40I",
+          "mode": "list",
+          "cachedResultName": "backups",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/11mllj9dP2eiCabLxQ-fteCkiegjPg40I"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        944,
+        80
+      ],
+      "id": "3db76cc4-f5d6-47ab-a60f-423ea268ef6b",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "gnJetKvQ6LY41QFs",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -128,
+        0
+      ],
+      "id": "e6db6e55-10a6-4575-9b2a-8647b50b584e",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/drive/v3/files",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "'11mllj9dP2eiCabLxQ-fteCkiegjPg40I' in parents and trashed = false"
+            },
+            {
+              "name": "fields",
+              "value": "nextPageToken,files(id,name,modifiedTime)"
+            },
+            {
+              "name": "orderBy",
+              "value": "modifiedTime desc"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1232,
+        80
+      ],
+      "id": "0dc3868e-a5a3-416b-bb11-1c666c70404d",
+      "name": "List Files",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "gnJetKvQ6LY41QFs",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "files",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        80
+      ],
+      "id": "c17e3cf3-b4f2-47a3-9223-9985bd2175d7",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=https://www.googleapis.com/drive/v3/files/{{ $json.files.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1664,
+        80
+      ],
+      "id": "ffe28d84-1479-40a3-b0e8-4590c1ee443d",
+      "name": "Delete Old Files",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "gnJetKvQ6LY41QFs",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Оставляем только файлы с 11-го и дальше (т.е. удаляем первые 10 самых новых)\nreturn $input.all().slice(10);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        80
+      ],
+      "id": "2ecab94a-89e7-4fbb-8653-07ef8988ec8d",
+      "name": "List of Old Files"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "download",
+        "path": "/MyContainer/pass.kdbx"
+      },
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        32,
+        0
+      ],
+      "id": "67906357-3ca9-4461-8cad-7738fa3ebc23",
+      "name": "Check a file",
+      "credentials": {
+        "dropboxOAuth2Api": {
+          "id": "4Rfa4Uewoz6o9qkF",
+          "name": "Dropbox account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "binaryData": true,
+        "encoding": "base64"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        176,
+        0
+      ],
+      "id": "437d9c64-6c7a-4463-9995-39d0af0d44fe",
+      "name": "Get Hash"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1toF8TK_JlAj_TQMVYoaOo3-b2TTBdAJ4rQg9JFzrOh0",
+          "mode": "list",
+          "cachedResultName": "DropZipGDrive",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1toF8TK_JlAj_TQMVYoaOo3-b2TTBdAJ4rQg9JFzrOh0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "DropZipGDrive",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1toF8TK_JlAj_TQMVYoaOo3-b2TTBdAJ4rQg9JFzrOh0/edit#gid=0"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "detectAutomatically",
+              "readRowsUntil": "firstEmptyRow"
+            }
+          },
+          "returnFirstMatch": false
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        320,
+        0
+      ],
+      "id": "75a19fd2-56ae-4187-a927-ea43514d88d6",
+      "name": "Get saved hash",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YzFYh1btbd7jR5IA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2def19e5-a5b9-4380-96e1-cd91d6771a7d",
+              "leftValue": "={{ $json.HEX }}",
+              "rightValue": "={{ $('Get Hash').item.json.data }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        0
+      ],
+      "id": "ac9f2694-fbc3-4774-aebd-e9432b8ebbbf",
+      "name": "Hash comparison"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "download",
+        "path": "/MyContainer/pass.kdbx"
+      },
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        656,
+        80
+      ],
+      "id": "616c2f4d-2a41-4733-89b0-1be341341525",
+      "name": "Get a file",
+      "credentials": {
+        "dropboxOAuth2Api": {
+          "id": "4Rfa4Uewoz6o9qkF",
+          "name": "Dropbox account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1toF8TK_JlAj_TQMVYoaOo3-b2TTBdAJ4rQg9JFzrOh0",
+          "mode": "list",
+          "cachedResultName": "DropZipGDrive",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1toF8TK_JlAj_TQMVYoaOo3-b2TTBdAJ4rQg9JFzrOh0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "DropZipGDrive",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1toF8TK_JlAj_TQMVYoaOo3-b2TTBdAJ4rQg9JFzrOh0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $('Get saved hash').item.json.row_number }}",
+            "HEX": "={{ $('Get Hash').item.json.data }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "HEX",
+              "displayName": "HEX",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1088,
+        80
+      ],
+      "id": "b0fe5e5e-c5aa-48fa-b3f4-1b2302a8d966",
+      "name": "Update hash in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YzFYh1btbd7jR5IA",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Compression": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Update hash in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Files": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "List of Old Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List of Old Files": {
+      "main": [
+        [
+          {
+            "node": "Delete Old Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check a file": {
+      "main": [
+        [
+          {
+            "node": "Get Hash",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Hash": {
+      "main": [
+        [
+          {
+            "node": "Get saved hash",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get saved hash": {
+      "main": [
+        [
+          {
+            "node": "Hash comparison",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hash comparison": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Compression",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update hash in sheet": {
+      "main": [
+        [
+          {
+            "node": "List Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "timezone": "Europe/Prague",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "DjnWdcwNmn4Lpsk9"
+  },
+  "versionId": "e54bcea9-0842-4de7-8960-3172be3aef49",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6fdffd940592a88141c2949b5a414108c8f28cea3e3e662c7647379501496c23"
+  },
+  "id": "ADfKJOjlo815FiQr",
+  "tags": []
+}

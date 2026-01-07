@@ -1,0 +1,40 @@
+# ===== macOS system files =====
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# ===== Finder & Spotlight =====
+.Spotlight-V100
+.Trashes
+.fseventsd
+
+# ===== n8n local data =====
+.n8n/
+.n8n-config/
+credentials.json
+*.sqlite
+*.db
+
+# ===== Environment & secrets =====
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.crt
+
+# ===== Logs =====
+logs/
+*.log
+
+# ===== IDE / Editors =====
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ===== OS / Temp =====
+tmp/
+temp/
