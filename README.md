@@ -2,6 +2,9 @@
 
 Fully automated, secure backup and file-rotation system for an encrypted KeePass database stored in Dropbox, with redundant storage in Google Drive.
 
+## Workflow Diagram
+![Workflow Diagram](screenshots/workflow_diagram.png)
+
 ## Problem
 Clients relying solely on Dropbox sync risk losing their primary KeePass database due to accidental deletion, corruption, or sync conflicts. Manual backups are inconsistent and unstructured.
 
@@ -31,6 +34,7 @@ This n8n workflow continuously monitors a KeePass database file in Dropbox and a
 - `/docs` – setup, security, retention logic
 - `/samples` – example metadata and retention data
 - `/CASE_STUDY.md` – business case & results
+- `/WORKFLOW_OVERVIEW.md` – detailed technical description of the automation logic
 
 ## Use Case
 Ideal for:
